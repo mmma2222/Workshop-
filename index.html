@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Workshop Stock & Billing</title>
+  <style>
+    body {
+      font-family: Arial;
+      background: #f0f8ff;
+      padding: 20px;
+    }
+    h1 { color: #004080; }
+    table, th, td {
+      border: 1px solid #000;
+      border-collapse: collapse;
+      padding: 8px;
+    }
+    table {
+      width: 100%;
+      margin-bottom: 20px;
+    }
+    input, button {
+      padding: 5px;
+      margin: 5px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Workshop Stock & Billing</h1>
+
+  <!-- Product Entry -->
+  <h3>Add Product to Stock</h3>
+  <input type="text" id="productName" placeholder="Product Name">
+  <input type="number" id="productQty" placeholder="Quantity">
+  <input type="number" id="productPrice" placeholder="Price">
+  <button onclick="addToStock()">Add to Stock</button>
+
+  <h3>Current Stock</h3>
+  <table id="stockTable">
+    <thead>
+      <tr>
+        <th>Product</th>
+        <th>Quantity</th>
+        <th>Price</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <!-- Billing Section -->
+  <h3>Create Bill</h3>
+  <input type="text" id="billProduct" placeholder="Product Name">
+  <input type="number" id="billQty" placeholder="Quantity">
+  <button onclick="createBill()">Add to Bill</button>
+
+  <h3>Bill Details</h3>
+  <table id="billTable">
+    <thead>
+      <tr>
+        <th>Product</th>
+        <th>Qty</th>
+        <th>Unit Price</th>
+        <th>Total</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+  <h4 id="totalAmount">Total: ₹0</h4>
+
+  <!-- Payment Section -->
+  <h3>Payment</h3>
+  <input type="number" id="paidAmount" placeholder="Amount Paid">
+  <button onclick="calculateDue()">Calculate Due</button>
+  <h4 id="dueAmount">Due: ₹0</h4>
+
+  <script>
+    const stock = {};
+    const billItems = [];
+
+    function addToStock() {
+      const name = document.getElementById('productName').value;
+      const qty = parseInt(document.getElementById('productQty').value);
+      const price = parseFloat(document.getElementById('productPrice').value);
+
+      if (name && qty && price) {
+        stock[name] = { qty, price };
+        updateStockTable();
+        document.getElementById('productName').value = '';
+        document.getElementById('productQty').value = '';
+        document.getElementById('productPrice').value = '';
+      }
+    }
+
+    function updateStockTable() {
+      const tbody = document.querySelector('#stockTable tbody');
+      tbody.innerHTML = '';
+      for (const name in stock) {
+        const row = `<tr><td>${name}</td><td>${stock[name].qty}</td><td>₹${stock[name].price}</td></tr>`;
+        tbody.innerHTML += row;
+      }
+    }
+
+    function createBill() {
+      const name = document.getElementById('billProduct').value;
+      const qty = parseInt(document.getElementById('billQty').value);
+
+      if (stock[name] && qty <= stock[name].qty) {
+        const price = stock[name].price;
+        const total = qty * price;
+        billItems.push({ name, qty, price, total });
+        stock[name].qty -= qty;
+        updateStockTable();
+        updateBillTable();
+        document.getElementById('billProduct').value = '';
+        document.getElementById('billQty').value = '';
+      } else {
+        alert('Product not available or insufficient stock.');
+      }
+    }
+
+    function updateBillTable() {
+      const tbody = document.querySelector('#billTable tbody');
+      tbody.innerHTML = '';
+      let total = 0;
+      for (const item of billItems) {
+        tbody.innerHTML += `<tr><td>${item.name}</td><td>${item.qty}</td><td>₹${item.price}</td><td>₹${item.total}</td></tr>`;
+        total += item.total;
+      }
+      document.getElementById('totalAmount').innerText = `Total: ₹${total}`;
+    }
+
+    function calculateDue() {
+      const paid = parseFloat(document.getElementById('paidAmount').value);
+      const totalText = document.getElementById('totalAmount').innerText;
+      const total = parseFloat(totalText.replace('Total: ₹', ''));
+  
+    const due = total - paid;
+      document.getElementById('dueAmount').innerText = `Due: ₹${due}`;
+    }
+  </script>
+</body>
+</html>
